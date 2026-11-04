@@ -31,7 +31,7 @@ function AdminDashboard() {
         </div>
 
         {/* Manage Posts */}
-        <div className="rounded-xl border bg-white p-6 shadow-sm">
+        {/* <div className="rounded-xl border bg-white p-6 shadow-sm">
           <div className="mb-4 text-3xl">📚</div>
 
           <h2 className="text-xl font-semibold">Manage Posts</h2>
@@ -46,7 +46,7 @@ function AdminDashboard() {
           >
             View All Posts
           </Link>
-        </div>
+        </div> */}
       </div>
     </div>
   );

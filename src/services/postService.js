@@ -38,3 +38,18 @@ export async function createPost(formData) {
 
   return data;
 }
+
+export async function deletePost(postId) {
+  const response = await fetch(`${API_URL}/posts/${postId}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Post delete nahi ho payi");
+  }
+
+  return data;
+}

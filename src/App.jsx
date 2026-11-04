@@ -14,6 +14,7 @@ import Profile from "./pages/Profile";
 import SavedPosts from "./pages/SavedPosts";
 import AdminDashboard from "./pages/AdminDashboard";
 import ManagePosts from "./pages/ManagePosts";
+import CreatePost from "./pages/CreatePost";
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/posts" element={<ManagePosts />} />
+              <Route path="/admin/posts/create" element={<CreatePost />} />
             </Route>
           </Route>
         </Routes>
