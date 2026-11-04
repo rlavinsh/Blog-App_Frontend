@@ -30,3 +30,20 @@ export async function addComment(postId, content) {
 
   return data;
 }
+
+// delete the comment
+
+export async function deleteComment(commentId) {
+  const response = await fetch(`${API_URL}/comments/${commentId}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Comment delete nahi ho paya");
+  }
+
+  return data;
+}

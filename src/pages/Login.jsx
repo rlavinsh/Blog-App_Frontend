@@ -1,7 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { loginUser } from "../services/authService";
 
 function Login() {
+  const navigate = useNavigate();
+  const { checkAuth } = useAuth();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -9,12 +14,18 @@ function Login() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+
     setError("");
     setLoading(true);
 
     try {
       await loginUser(email, password);
-      alert("Login successful");
+
+      // Login ke baad current user fetch karo
+      await checkAuth();
+
+      // Home page par redirect
+      navigate("/");
     } catch (err) {
       setError(err.message);
     } finally {
