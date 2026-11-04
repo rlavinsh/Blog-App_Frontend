@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+
 import { getPostById } from "../services/postService";
-import { getComments, addComment } from "../services/commentService";
+
+import {
+  getComments,
+  addComment,
+  deleteComment,
+} from "../services/commentService";
+
+import { useAuth } from "../context/AuthContext";
 
 import {
   getSavedPosts,
@@ -11,55 +19,30 @@ import {
 
 function PostDetails() {
   const { id } = useParams();
-  // console.log(id);
+  const { user } = useAuth();
 
-  //for post saving and unsave
-  const [isSaved, setIsSaved] = useState(false);
-  const [saving, setSaving] = useState(false);
-
+  // Post states
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // for reading comments
+  // Auth user ID
+  const currentUserId = String(user?._id || user?.id || user?.user?._id || "");
+
+  // Save / Unsave states
+  const [isSaved, setIsSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Comments states
   const [comments, setComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(true);
 
-  // for adding comments
-
+  // Add comment states
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [commentError, setCommentError] = useState("");
 
-  // handle function for adding comment
-  async function handleCommentSubmit(e) {
-    e.preventDefault();
-
-    if (!content.trim()) {
-      setCommentError("Please enter a comment");
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      setCommentError("");
-
-      await addComment(id, content);
-
-      setContent("");
-
-      const data = await getComments(id);
-      // console.log(data);
-
-      setComments(data.data);
-    } catch (error) {
-      setCommentError(error.message);
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  // function for loading post
+  // Load Post
   useEffect(() => {
     async function loadPost() {
       try {
@@ -67,9 +50,10 @@ function PostDetails() {
         setError("");
 
         const data = await getPostById(id);
+
         setPost(data.data);
-      } catch (err) {
-        setError(err.message);
+      } catch (error) {
+        setError(error.message);
       } finally {
         setLoading(false);
       }
@@ -78,38 +62,39 @@ function PostDetails() {
     loadPost();
   }, [id]);
 
-  // useEffect for fetching commments
+  // Load Comments
+  async function fetchComments() {
+    try {
+      setCommentsLoading(true);
+
+      const data = await getComments(id);
+
+      setComments(data.data || []);
+    } catch (error) {
+      console.log("Comments Error:", error.message);
+    } finally {
+      setCommentsLoading(false);
+    }
+  }
 
   useEffect(() => {
-    async function loadComments() {
-      try {
-        setCommentsLoading(true);
-
-        const data = await getComments(id);
-        setComments(data.data);
-      } catch (error) {
-        console.log(error.message);
-      } finally {
-        setCommentsLoading(false);
-      }
-    }
-
-    loadComments();
+    fetchComments();
   }, [id]);
 
-  // function for Checking post already saved hai ya nahi
-
+  // Check Saved Post
   async function checkSavedPost() {
     try {
       const data = await getSavedPosts();
 
       const savedPosts = data.savedPosts || [];
 
-      const alreadySaved = savedPosts.some((item) => item.post?._id === id);
+      const alreadySaved = savedPosts.some(
+        (item) => String(item.post?._id) === String(id),
+      );
 
       setIsSaved(alreadySaved);
     } catch (error) {
-      console.log(error.message);
+      console.log("Saved Posts Error:", error.message);
     }
   }
 
@@ -117,8 +102,7 @@ function PostDetails() {
     checkSavedPost();
   }, [id]);
 
-  //Save / Unsave function
-
+  // Save / Unsave Post
   async function handleSavePost() {
     try {
       setSaving(true);
@@ -135,6 +119,61 @@ function PostDetails() {
     } finally {
       setSaving(false);
     }
+  }
+
+  // Add Comment
+  async function handleCommentSubmit(e) {
+    e.preventDefault();
+
+    if (!content.trim()) {
+      setCommentError("Please enter a comment");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setCommentError("");
+
+      await addComment(id, content);
+
+      setContent("");
+
+      await fetchComments();
+    } catch (error) {
+      setCommentError(error.message);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  // Delete Comment
+  async function handleDeleteComment(commentId) {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this comment?",
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      await deleteComment(commentId);
+
+      setComments((previousComments) =>
+        previousComments.filter((comment) => comment._id !== commentId),
+      );
+    } catch (error) {
+      alert(error.message);
+    }
+  }
+
+  // Get comment author ID
+  function getCommentAuthorId(comment) {
+    const author = comment.author;
+
+    if (typeof author === "object" && author !== null) {
+      return String(author._id || author.id || "");
+    }
+
+    return String(author || "");
   }
 
   if (loading) {
@@ -155,6 +194,7 @@ function PostDetails() {
         ← Back to Home
       </Link>
 
+      {/* Post Image */}
       {post.coverImage && (
         <img
           src={post.coverImage}
@@ -171,18 +211,22 @@ function PostDetails() {
         {post.content}
       </div>
 
-      <button
-        onClick={handleSavePost}
-        disabled={saving}
-        className={`rounded-lg px-5 py-2 font-medium transition ${
-          isSaved
-            ? "border border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
-            : "bg-blue-600 text-white hover:bg-blue-700"
-        } disabled:cursor-not-allowed disabled:opacity-50`}
-      >
-        {saving ? "Please wait..." : isSaved ? "Remove Saved" : "Save Post"}
-      </button>
+      {/* Save Post Button */}
+      {user && (
+        <button
+          onClick={handleSavePost}
+          disabled={saving}
+          className={`mt-6 rounded-lg px-5 py-2 font-medium transition ${
+            isSaved
+              ? "border border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+          } disabled:cursor-not-allowed disabled:opacity-50`}
+        >
+          {saving ? "Please wait..." : isSaved ? "Remove Saved" : "Save Post"}
+        </button>
+      )}
 
+      {/* Comments Section */}
       <section className="mt-12 border-t pt-8">
         <h2 className="mb-6 text-2xl font-bold">
           Comments ({comments.length})
@@ -194,20 +238,51 @@ function PostDetails() {
           <p className="text-gray-500">No comments yet.</p>
         ) : (
           <div className="space-y-4">
-            {comments.map((comment) => (
-              <div key={comment._id} className="rounded-lg border bg-white p-4">
-                <h3 className="font-semibold">
-                  {comment.author?.name || "Unknown User"}
-                </h3>
+            {comments.map((comment) => {
+              const authorId = getCommentAuthorId(comment);
 
-                <p className="mt-2 text-gray-600">{comment.content}</p>
-              </div>
-            ))}
+              const isOwner =
+                currentUserId !== "" && currentUserId === authorId;
+
+              const isAdmin = user?.role === "admin";
+
+              console.log("Comment ID:", comment._id);
+              console.log("Comment Author ID:", authorId);
+              console.log("Logged In User ID:", currentUserId);
+              console.log("Is Owner:", isOwner);
+
+              return (
+                <div
+                  key={comment._id}
+                  className="rounded-xl border border-gray-200 bg-white p-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-800">
+                      {typeof comment.author === "object"
+                        ? comment.author?.name || "Unknown User"
+                        : "Unknown User"}
+                    </h3>
+
+                    {(isOwner || isAdmin) && (
+                      <button
+                        onClick={() => handleDeleteComment(comment._id)}
+                        className="text-sm font-medium text-red-600 hover:text-red-700"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+
+                  <p className="mt-2 text-gray-600">{comment.content}</p>
+                </div>
+              );
+            })}
           </div>
         )}
       </section>
 
-      <form onSubmit={handleCommentSubmit} className="mb-8">
+      {/* Add Comment Form */}
+      <form onSubmit={handleCommentSubmit} className="mb-8 mt-8">
         <label className="mb-2 block font-medium">Write a comment</label>
 
         <textarea
