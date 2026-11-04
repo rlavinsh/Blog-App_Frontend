@@ -112,6 +112,13 @@ function ManagePosts() {
                     >
                       Delete
                     </button>
+                    {"   "}
+                    <Link
+                      to={`/admin/posts/edit/${post._id}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      Edit
+                    </Link>
                   </td>
                 </tr>
               ))}

@@ -53,3 +53,19 @@ export async function deletePost(postId) {
 
   return data;
 }
+
+export async function updatePost(postId, formData) {
+  const response = await fetch(`${API_URL}/posts/${postId}`, {
+    method: "PUT",
+    credentials: "include",
+    body: formData,
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Post update nahi ho payi");
+  }
+
+  return data;
+}

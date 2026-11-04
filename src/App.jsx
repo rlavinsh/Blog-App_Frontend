@@ -15,6 +15,7 @@ import SavedPosts from "./pages/SavedPosts";
 import AdminDashboard from "./pages/AdminDashboard";
 import ManagePosts from "./pages/ManagePosts";
 import CreatePost from "./pages/CreatePost";
+import EditPost from "./pages/EditPost";
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/posts" element={<ManagePosts />} />
               <Route path="/admin/posts/create" element={<CreatePost />} />
+              <Route path="/admin/posts/edit/:id" element={<EditPost />} />
             </Route>
           </Route>
         </Routes>
