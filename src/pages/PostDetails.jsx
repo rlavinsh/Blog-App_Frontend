@@ -3,9 +3,19 @@ import { useParams, Link } from "react-router-dom";
 import { getPostById } from "../services/postService";
 import { getComments, addComment } from "../services/commentService";
 
+import {
+  getSavedPosts,
+  savePost,
+  unsavePost,
+} from "../services/savedPostService";
+
 function PostDetails() {
   const { id } = useParams();
   // console.log(id);
+
+  //for post saving and unsave
+  const [isSaved, setIsSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -87,6 +97,46 @@ function PostDetails() {
     loadComments();
   }, [id]);
 
+  // function for Checking post already saved hai ya nahi
+
+  async function checkSavedPost() {
+    try {
+      const data = await getSavedPosts();
+
+      const savedPosts = data.savedPosts || [];
+
+      const alreadySaved = savedPosts.some((item) => item.post?._id === id);
+
+      setIsSaved(alreadySaved);
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+
+  useEffect(() => {
+    checkSavedPost();
+  }, [id]);
+
+  //Save / Unsave function
+
+  async function handleSavePost() {
+    try {
+      setSaving(true);
+
+      if (isSaved) {
+        await unsavePost(id);
+        setIsSaved(false);
+      } else {
+        await savePost(id);
+        setIsSaved(true);
+      }
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   if (loading) {
     return <p className="text-center">Loading post...</p>;
   }
@@ -120,6 +170,18 @@ function PostDetails() {
       <div className="whitespace-pre-wrap leading-8 text-gray-700">
         {post.content}
       </div>
+
+      <button
+        onClick={handleSavePost}
+        disabled={saving}
+        className={`rounded-lg px-5 py-2 font-medium transition ${
+          isSaved
+            ? "border border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
+            : "bg-blue-600 text-white hover:bg-blue-700"
+        } disabled:cursor-not-allowed disabled:opacity-50`}
+      >
+        {saving ? "Please wait..." : isSaved ? "Remove Saved" : "Save Post"}
+      </button>
 
       <section className="mt-12 border-t pt-8">
         <h2 className="mb-6 text-2xl font-bold">
