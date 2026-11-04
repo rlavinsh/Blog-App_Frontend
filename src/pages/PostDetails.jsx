@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getPostById } from "../services/postService";
+import { getComments } from "../services/commentService";
 
 function PostDetails() {
   const { id } = useParams();
@@ -9,6 +10,10 @@ function PostDetails() {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // for comments
+  const [comments, setComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(true);
 
   useEffect(() => {
     async function loadPost() {
@@ -26,6 +31,25 @@ function PostDetails() {
     }
 
     loadPost();
+  }, [id]);
+
+  // useEffect for fetching commments
+
+  useEffect(() => {
+    async function loadComments() {
+      try {
+        setCommentsLoading(true);
+
+        const data = await getComments(id);
+        setComments(data.data);
+      } catch (error) {
+        console.log(error.message);
+      } finally {
+        setCommentsLoading(false);
+      }
+    }
+
+    loadComments();
   }, [id]);
 
   if (loading) {
@@ -61,6 +85,30 @@ function PostDetails() {
       <div className="whitespace-pre-wrap leading-8 text-gray-700">
         {post.content}
       </div>
+
+      <section className="mt-12 border-t pt-8">
+        <h2 className="mb-6 text-2xl font-bold">
+          Comments ({comments.length})
+        </h2>
+
+        {commentsLoading ? (
+          <p className="text-gray-500">Loading comments...</p>
+        ) : comments.length === 0 ? (
+          <p className="text-gray-500">No comments yet.</p>
+        ) : (
+          <div className="space-y-4">
+            {comments.map((comment) => (
+              <div key={comment._id} className="rounded-lg border bg-white p-4">
+                <h3 className="font-semibold">
+                  {comment.author?.name || "Unknown User"}
+                </h3>
+
+                <p className="mt-2 text-gray-600">{comment.content}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </article>
   );
 }

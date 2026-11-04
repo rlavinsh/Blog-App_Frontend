@@ -22,7 +22,6 @@ function Home() {
 
     loadPosts();
   }, []);
-  console.log(posts);
 
   if (loading) {
     return <p className="text-center text-gray-600">Posts loading...</p>;
