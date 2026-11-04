@@ -52,3 +52,21 @@ export async function registerUser(formData) {
 
   return data;
 }
+
+// update the profile
+
+export async function updateProfile(formData) {
+  const response = await fetch(`${API_URL}/auth/profile`, {
+    method: "PUT",
+    credentials: "include",
+    body: formData,
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Profile update nahi ho payi");
+  }
+
+  return data;
+}
