@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { logoutUser } from "../services/authService";
 
 const AuthContext = createContext();
 
@@ -30,12 +31,22 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function logout() {
+    try {
+      await logoutUser();
+      setUser(null);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
   useEffect(() => {
     checkAuth();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, checkAuth }}>
+    <AuthContext.Provider value={{ user, setUser, loading, checkAuth, logout }}>
       {children}
     </AuthContext.Provider>
   );

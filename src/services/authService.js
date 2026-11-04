@@ -18,3 +18,37 @@ export async function loginUser(email, password) {
 
   return data;
 }
+
+// Logout Service
+
+export async function logoutUser() {
+  const response = await fetch(`${API_URL}/auth/logout`, {
+    method: "POST",
+    credentials: "include",
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Logout nahi ho paya");
+  }
+
+  return data;
+}
+
+// Register the User
+
+export async function registerUser(formData) {
+  const response = await fetch(`${API_URL}/auth/register`, {
+    method: "POST",
+    body: formData,
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Registration nahi ho paya");
+  }
+
+  return data;
+}
