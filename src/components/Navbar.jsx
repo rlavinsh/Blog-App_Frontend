@@ -14,36 +14,66 @@ function Navbar() {
     }
   }
 
-  if (loading) {
-    return <p>Loading...</p>;
-  }
-
   return (
-    <nav className="flex items-center justify-between bg-white px-6 py-4 shadow">
-      <Link to="/" className="text-xl font-bold text-blue-600">
-        BlogApp
-      </Link>
+    <nav className="bg-white shadow">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
+        {/* Logo */}
+        <Link to="/" className="text-2xl font-bold text-blue-600">
+          BlogApp
+        </Link>
 
-      <div className="flex items-center gap-5">
-        <Link to="/">Home</Link>
+        {/* Navigation Links */}
+        <div className="flex items-center gap-5">
+          <Link to="/" className="hover:text-blue-600">
+            Home
+          </Link>
 
-        {user ? (
-          <>
-            <Link to="/profile">Profile</Link>
+          {loading ? (
+            <p className="text-sm text-gray-500">Loading...</p>
+          ) : user ? (
+            <>
+              <Link to="/profile" className="hover:text-blue-600">
+                Profile
+              </Link>
 
-            <button
-              onClick={handleLogout}
-              className="rounded bg-red-600 px-4 py-2 text-white"
-            >
-              Logout
-            </button>
-          </>
-        ) : (
-          <>
-            <Link to="/login">Login</Link>
-            <Link to="/register">Register</Link>
-          </>
-        )}
+              {user.role === "admin" ? (
+                <>
+                  <Link to="/admin" className="hover:text-blue-600">
+                    Dashboard
+                  </Link>
+
+                  <Link to="/admin/posts" className="hover:text-blue-600">
+                    Manage Posts
+                  </Link>
+                </>
+              ) : (
+                <Link to="/saved-posts" className="hover:text-blue-600">
+                  Saved Posts
+                </Link>
+              )}
+
+              <button
+                onClick={handleLogout}
+                className="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="hover:text-blue-600">
+                Login
+              </Link>
+
+              <Link
+                to="/register"
+                className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              >
+                Register
+              </Link>
+            </>
+          )}
+        </div>
       </div>
     </nav>
   );
