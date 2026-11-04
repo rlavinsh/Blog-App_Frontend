@@ -9,3 +9,24 @@ export async function getComments(postId) {
 
   return response.json();
 }
+
+// Adding the comment service
+
+export async function addComment(postId, content) {
+  const response = await fetch(`${API_URL}/comments/${postId}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({ content }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Comment add nahi ho paya");
+  }
+
+  return data;
+}

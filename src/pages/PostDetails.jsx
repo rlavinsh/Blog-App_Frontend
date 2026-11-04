@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getPostById } from "../services/postService";
-import { getComments } from "../services/commentService";
+import { getComments, addComment } from "../services/commentService";
 
 function PostDetails() {
   const { id } = useParams();
@@ -11,10 +11,45 @@ function PostDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // for comments
+  // for reading comments
   const [comments, setComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(true);
 
+  // for adding comments
+
+  const [content, setContent] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [commentError, setCommentError] = useState("");
+
+  // handle function for adding comment
+  async function handleCommentSubmit(e) {
+    e.preventDefault();
+
+    if (!content.trim()) {
+      setCommentError("Please enter a comment");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setCommentError("");
+
+      await addComment(id, content);
+
+      setContent("");
+
+      const data = await getComments(id);
+      // console.log(data);
+
+      setComments(data.data);
+    } catch (error) {
+      setCommentError(error.message);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  // function for loading post
   useEffect(() => {
     async function loadPost() {
       try {
@@ -109,6 +144,31 @@ function PostDetails() {
           </div>
         )}
       </section>
+
+      <form onSubmit={handleCommentSubmit} className="mb-8">
+        <label className="mb-2 block font-medium">Write a comment</label>
+
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Share your thoughts..."
+          rows="4"
+          maxLength={1000}
+          className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500"
+        />
+
+        {commentError && (
+          <p className="mt-2 text-sm text-red-600">{commentError}</p>
+        )}
+
+        <button
+          type="submit"
+          disabled={submitting}
+          className="mt-3 rounded-lg bg-blue-600 px-5 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
+        >
+          {submitting ? "Submitting..." : "Add Comment"}
+        </button>
+      </form>
     </article>
   );
 }
